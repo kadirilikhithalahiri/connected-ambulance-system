@@ -106,4 +106,26 @@ public class AmbulanceCrewDAO {
 
         return assignments;
     }
+
+    public List<Integer> getActiveAmbulanceIdsForUser(int userId) {
+        List<Integer> ambulanceIds = new ArrayList<>();
+        String sql = "SELECT ambulance_id FROM Ambulance_Crew WHERE user_id = ? AND assigned_to IS NULL";
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, userId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    ambulanceIds.add(resultSet.getInt("ambulance_id"));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error retrieving active ambulance IDs for crew user: " + e.getMessage());
+        }
+
+        return ambulanceIds;
+    }
 }

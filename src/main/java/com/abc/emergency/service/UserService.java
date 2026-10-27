@@ -2,6 +2,7 @@ package com.abc.emergency.service;
 
 import com.abc.emergency.dao.UserDAO;
 import com.abc.emergency.model.User;
+import com.abc.emergency.util.PasswordUtil;
 import com.abc.emergency.util.ValidationUtil;
 
 public class UserService {
@@ -9,7 +10,11 @@ public class UserService {
     private final UserDAO userDAO;
 
     public UserService() {
-        userDAO = new UserDAO();
+        this(new UserDAO());
+    }
+
+    public UserService(UserDAO userDAO) {
+        this.userDAO = userDAO;
     }
 
     public boolean registerUser(String username, String password,
@@ -48,7 +53,7 @@ public class UserService {
         User user = new User();
 
         user.setUsername(username);
-        user.setPasswordHash(password);
+        user.setPasswordHash(PasswordUtil.hashPassword(password));
         user.setFullName(fullName);
         user.setRole(role.toUpperCase());
         user.setPhone(phone);

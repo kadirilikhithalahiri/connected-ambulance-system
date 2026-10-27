@@ -149,4 +149,47 @@ public class UserDAO {
 
         return null;
     }
+
+    public boolean updatePasswordHash(int userId, String newHash) {
+        if (userId <= 0 || newHash == null || newHash.trim().isEmpty()) {
+            return false;
+        }
+
+        String sql = "UPDATE Users SET password_hash = ? WHERE user_id = ?";
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, newHash);
+            statement.setInt(2, userId);
+
+            return statement.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error updating password: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updatePasswordHashConditional(int userId, String expectedOldHashOrPlain, String newHash) {
+        if (userId <= 0 || newHash == null || newHash.trim().isEmpty() || expectedOldHashOrPlain == null) {
+            return false;
+        }
+
+        String sql = "UPDATE Users SET password_hash = ? WHERE user_id = ? AND password_hash = ?";
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, newHash);
+            statement.setInt(2, userId);
+            statement.setString(3, expectedOldHashOrPlain);
+
+            return statement.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error conditionally updating password: " + e.getMessage());
+            return false;
+        }
+    }
 }

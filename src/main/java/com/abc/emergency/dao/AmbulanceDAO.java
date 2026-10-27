@@ -161,6 +161,67 @@ public class AmbulanceDAO {
         }
     }
 
+    public boolean updateAvailabilityAtomic(Connection connection, int ambulanceId, String expectedStatus, String targetStatus) throws SQLException {
+        String sql = "UPDATE Ambulances SET availability = ? WHERE ambulance_id = ? AND availability = ?";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, targetStatus);
+            statement.setInt(2, ambulanceId);
+            statement.setString(3, expectedStatus);
+
+            return statement.executeUpdate() > 0;
+        }
+    }
+
+    public boolean updateLocation(int ambulanceId, double latitude, double longitude) {
+        String sql = "UPDATE Ambulances SET gps_latitude = ?, gps_longitude = ? WHERE ambulance_id = ?";
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setDouble(1, latitude);
+            statement.setDouble(2, longitude);
+            statement.setInt(3, ambulanceId);
+
+            return statement.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error updating ambulance location: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public List<Ambulance> getAmbulancesByDriverId(int driverId) {
+        List<Ambulance> ambulances = new ArrayList<>();
+        String sql = "SELECT * FROM Ambulances WHERE driver_id = ? ORDER BY ambulance_id";
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, driverId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Ambulance ambulance = new Ambulance();
+                    ambulance.setAmbulanceId(resultSet.getInt("ambulance_id"));
+                    ambulance.setVehicleNumber(resultSet.getString("vehicle_number"));
+                    ambulance.setDriverId(resultSet.getInt("driver_id"));
+                    ambulance.setParamedicId(resultSet.getInt("paramedic_id"));
+                    ambulance.setGpsLatitude(resultSet.getDouble("gps_latitude"));
+                    ambulance.setGpsLongitude(resultSet.getDouble("gps_longitude"));
+                    ambulance.setEquipment(resultSet.getString("equipment"));
+                    ambulance.setAvailability(resultSet.getString("availability"));
+                    ambulances.add(ambulance);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error retrieving ambulances by driver ID: " + e.getMessage());
+        }
+
+        return ambulances;
+    }
+
     public boolean deleteAmbulance(int ambulanceId) {
 
         String sql = "DELETE FROM Ambulances WHERE ambulance_id = ?";

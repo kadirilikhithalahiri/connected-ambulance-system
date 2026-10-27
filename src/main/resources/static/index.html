@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connected Ambulance System</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+    <!-- Full-screen loading state -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p style="font-size: 13px; font-weight: 500; color: #475569;">Initializing secure session...</p>
+    </div>
+
+    <!-- Login View Container -->
+    <div id="loginView" class="login-view-wrapper hidden">
+        <div class="login-card">
+            <header class="login-brand">
+                <div class="brand-icon">EMS</div>
+                <h1>CONNECTED AMBULANCE SYSTEM</h1>
+                <p>Emergency Response &amp; Ambulance Management</p>
+            </header>
+
+            <div id="loginAlert" class="alert alert-error hidden"></div>
+
+            <form id="loginForm" novalidate>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" class="form-input" autocomplete="username" required autofocus placeholder="Enter your username">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-input" autocomplete="current-password" required placeholder="Enter your password">
+                </div>
+
+                <button type="submit" id="loginBtn" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Sign In</button>
+            </form>
+
+            <footer class="login-footer">
+                <p>Authorized Medical, Dispatch &amp; Ambulance Personnel Only.<br>All transactions are authenticated and logged.</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Authenticated Application Shell -->
+    <div id="appShell" class="app-shell hidden">
+
+        <!-- Mobile Sidebar Overlay -->
+        <div id="sidebarOverlay" class="sidebar-overlay hidden"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside id="appSidebar" class="app-sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-brand-badge">EMS</span>
+                <span class="sidebar-title">Connected Ambulance</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" data-module="dashboard">
+                    <div class="nav-item-left">
+                        <span>📊</span>
+                        <span>Dashboard</span>
+                    </div>
+                </a>
+
+                <a href="#patients" class="nav-item" data-module="patients">
+                    <div class="nav-item-left">
+                        <span>👤</span>
+                        <span>Patients</span>
+                    </div>
+                    <span class="badge badge-status">Active</span>
+                </a>
+
+                <a href="#cases" class="nav-item" data-module="cases">
+                    <div class="nav-item-left">
+                        <span>🚨</span>
+                        <span>Emergency Cases</span>
+                    </div>
+                    <span class="badge badge-status">Active</span>
+                </a>
+
+                <a href="#ambulances" class="nav-item" data-module="ambulances">
+                    <div class="nav-item-left">
+                        <span>🚑</span>
+                        <span>Ambulance Tracking</span>
+                    </div>
+                    <span class="badge badge-pending">API</span>
+                </a>
+
+                <a href="#dispatches" class="nav-item" data-module="dispatches">
+                    <div class="nav-item-left">
+                        <span>📡</span>
+                        <span>Dispatches</span>
+                    </div>
+                    <span class="badge badge-status">Active</span>
+                </a>
+
+                <a href="#reports" class="nav-item" data-module="reports">
+                    <div class="nav-item-left">
+                        <span>📈</span>
+                        <span>Reports &amp; Analytics</span>
+                    </div>
+                    <span class="badge badge-status">Active</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="api-status-pill">
+                    <span class="api-status-dot"></span>
+                    <span>REST API Active</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <div class="app-main">
+
+            <!-- Top Header Bar -->
+            <header class="app-header">
+                <div class="header-left">
+                    <button type="button" id="menuToggleBtn" class="menu-toggle-btn" aria-label="Toggle navigation menu">
+                        <span style="font-size: 20px;">☰</span>
+                    </button>
+                    <h2 id="headerTitle" class="header-title">Operational Dashboard</h2>
+                </div>
+
+                <div class="header-right">
+                    <div class="user-profile-chip">
+                        <div id="userAvatarDisplay" class="user-avatar">--</div>
+                        <div class="user-info">
+                            <span id="userNameDisplay" class="user-name">Loading...</span>
+                            <span id="userRoleDisplay" class="user-role-badge">ROLE</span>
+                        </div>
+                    </div>
+
+                    <button type="button" id="logoutBtn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">Sign Out</button>
+                </div>
+            </header>
+
+            <!-- Main Content Container -->
+            <main class="app-content">
+
+                <!-- Global Notification Box -->
+                <div id="globalAlert" class="alert hidden"></div>
+
+                <!-- Dashboard View -->
+                <div id="viewDashboard">
+                    <section class="welcome-banner">
+                        <h2 id="welcomeTitle">Welcome</h2>
+                        <p id="welcomeRole" style="font-weight: 500; color: var(--navy-600); margin-bottom: 6px;">Authorized Role: --</p>
+                        <p>Connected Ambulance System operational console. Access emergency cases, dispatch coordination, patient profiles, and vehicle telemetry through authorized role workflows.</p>
+                    </section>
+
+                    <h3 class="section-heading">Operational Modules</h3>
+                    <div class="modules-grid">
+                        <div class="module-card" data-module="patients">
+                            <div>
+                                <div class="module-card-header">
+                                    <span style="font-size: 24px;">👤</span>
+                                    <span class="badge badge-status">Active</span>
+                                </div>
+                                <h4 class="module-title">Patient Registry</h4>
+                                <p class="module-desc">Encrypted patient demographic records, medical histories, allergies, and emergency contact details.</p>
+                            </div>
+                            <div class="module-footer">
+                                <span>Endpoint: /api/patients</span>
+                                <span>Open Registry &rarr;</span>
+                            </div>
+                        </div>
+
+                        <div class="module-card" data-module="cases">
+                            <div>
+                                <div class="module-card-header">
+                                    <span style="font-size: 24px;">🚨</span>
+                                    <span class="badge badge-status">Active</span>
+                                </div>
+                                <h4 class="module-title">Emergency Cases</h4>
+                                <p class="module-desc">Atomic emergency case registration, symptoms intake, priority triage, and case status lifecycle.</p>
+                            </div>
+                            <div class="module-footer">
+                                <span>Endpoint: /api/cases</span>
+                                <span>Open Cases &rarr;</span>
+                            </div>
+                        </div>
+
+                        <div class="module-card" data-module="ambulances">
+                            <div>
+                                <div class="module-card-header">
+                                    <span style="font-size: 24px;">🚑</span>
+                                    <span class="badge badge-pending">API Ready</span>
+                                </div>
+                                <h4 class="module-title">Ambulance Tracking</h4>
+                                <p class="module-desc">Fleet availability management, vehicle equipment inventory, and driver-scoped GPS location telemetry.</p>
+                            </div>
+                            <div class="module-footer">
+                                <span>Endpoint: /api/ambulances</span>
+                                <span>Phase 5E &rarr;</span>
+                            </div>
+                        </div>
+
+                        <div class="module-card" data-module="dispatches">
+                            <div>
+                                <div class="module-card-header">
+                                    <span style="font-size: 24px;">📡</span>
+                                    <span class="badge badge-pending">API Ready</span>
+                                </div>
+                                <h4 class="module-title">Dispatch Management</h4>
+                                <p class="module-desc">Transactional ambulance dispatching, pre-departure cancellation, redispatch, and driver missions.</p>
+                            </div>
+                            <div class="module-footer">
+                                <span>Endpoint: /api/dispatches</span>
+                                <span>Phase 5E &rarr;</span>
+                            </div>
+                        </div>
+
+                        <div class="module-card" data-module="reports">
+                            <div>
+                                <div class="module-card-header">
+                                    <span style="font-size: 24px;">📈</span>
+                                    <span class="badge badge-role">Desktop Service</span>
+                                </div>
+                                <h4 class="module-title">Reports &amp; Analytics</h4>
+                                <p class="module-desc">Emergency response times, ambulance utilization metrics, and hospital readiness analytics.</p>
+                            </div>
+                            <div class="module-footer">
+                                <span>Service: ReportService</span>
+                                <span>Phase 5E &rarr;</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="section-heading">System Security &amp; Connection Status</h3>
+                    <div class="system-status-card">
+                        <div class="system-status-grid">
+                            <div class="status-item">
+                                <div class="status-item-label">Backend Architecture</div>
+                                <div class="status-item-value">Spring Boot 3.3.5 / Java 17</div>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-item-label">Session Authentication</div>
+                                <div class="status-item-value">Spring Security (CSRF Active)</div>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-item-label">User Principal</div>
+                                <div id="systemUserIdVal" class="status-item-value">Authenticated</div>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-item-label">Role Authority</div>
+                                <div id="systemRoleVal" class="status-item-value">Verified</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patients Management View -->
+                <div id="viewPatients" class="hidden">
+                    <div class="module-header-bar">
+                        <div>
+                            <h3 class="module-view-title">Patient Registry</h3>
+                            <p class="module-view-desc">Search, register, view, and update patient clinical and emergency contact records.</p>
+                        </div>
+                        <div class="module-header-actions">
+                            <button type="button" id="refreshPatientsBtn" class="btn btn-secondary" title="Reload from server">
+                                <span>🔄</span> Refresh
+                            </button>
+                            <button type="button" id="openAddPatientBtn" class="btn btn-primary hidden">
+                                <span>➕</span> Register Patient
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Role Notification Banner -->
+                    <div id="patientRoleNotice" class="alert alert-info hidden" style="margin-bottom: 16px;"></div>
+
+                    <!-- Patients Module Alert (for success/error feedback) -->
+                    <div id="patientAlert" class="alert hidden" style="margin-bottom: 16px;"></div>
+
+                    <!-- Search & Filter Toolbar -->
+                    <div class="patients-toolbar">
+                        <div class="search-input-wrapper">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="patientSearchInput" class="form-input search-input" placeholder="Search by patient name or ID..." aria-label="Search patients by name or ID">
+                            <button type="button" id="clearPatientSearchBtn" class="search-clear-btn hidden" aria-label="Clear search">✕</button>
+                        </div>
+                        <div class="toolbar-meta">
+                            <span id="patientCountBadge" class="badge badge-role">0 records</span>
+                        </div>
+                    </div>
+
+                    <!-- Patient State: Loading -->
+                    <div id="patientLoadingState" class="state-container hidden">
+                        <div class="spinner"></div>
+                        <p class="state-title" style="margin-top: 12px;">Loading patient records...</p>
+                        <p class="state-desc">Retrieving authorized patient data from /api/patients</p>
+                    </div>
+
+                    <!-- Patient State: Error -->
+                    <div id="patientErrorState" class="state-container hidden">
+                        <div class="state-icon">⚠️</div>
+                        <p id="patientErrorMessage" class="state-title">Failed to load patient records</p>
+                        <p class="state-desc">The server could not complete the request.</p>
+                        <button type="button" id="retryPatientsBtn" class="btn btn-primary" style="margin-top: 12px;">Retry</button>
+                    </div>
+
+                    <!-- Patient State: Access Restricted -->
+                    <div id="patientRestrictedState" class="state-container hidden">
+                        <div class="state-icon">🔒</div>
+                        <p class="state-title">Access Restricted</p>
+                        <p class="state-desc">Patient records are accessible only to medical and dispatch personnel (Admin, Dispatcher, Paramedic, Doctor).</p>
+                    </div>
+
+                    <!-- Patient State: Empty -->
+                    <div id="patientEmptyState" class="state-container hidden">
+                        <div class="state-icon">👤</div>
+                        <p class="state-title">No Patients Found</p>
+                        <p id="patientEmptyDesc" class="state-desc">No patient records are registered in the system yet.</p>
+                        <button type="button" id="emptyAddPatientBtn" class="btn btn-primary hidden" style="margin-top: 12px;">Register First Patient</button>
+                    </div>
+
+                    <!-- Patient Records Table -->
+                    <div id="patientTableWrapper" class="data-table-container hidden">
+                        <table class="data-table" aria-label="Patient Registry Table">
+                            <thead>
+                                <tr>
+                                    <th scope="col" style="width: 80px;">ID</th>
+                                    <th scope="col">Name &amp; Demographics</th>
+                                    <th scope="col">Emergency Contact</th>
+                                    <th scope="col">Blood Group</th>
+                                    <th scope="col">Allergies</th>
+                                    <th scope="col" style="text-align: right; width: 140px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patientTableBody">
+                                <!-- Populated dynamically by patients.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Emergency Cases Management View -->
+                <div id="viewCases" class="hidden">
+                    <div class="module-header-bar">
+                        <div>
+                            <h3 class="module-view-title">Emergency Cases</h3>
+                            <p class="module-view-desc">Monitor emergency triage intake, track live incident statuses, and manage atomic lifecycle transitions.</p>
+                        </div>
+                        <div class="module-header-actions">
+                            <button type="button" id="refreshCasesBtn" class="btn btn-secondary" title="Reload from server">
+                                <span>🔄</span> Refresh
+                            </button>
+                            <button type="button" id="openAddCaseBtn" class="btn btn-primary hidden">
+                                <span>➕</span> Register Emergency
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Role Notification Banner -->
+                    <div id="caseRoleNotice" class="alert alert-info hidden" style="margin-bottom: 16px;"></div>
+
+                    <!-- Cases Module Alert (for success/error feedback) -->
+                    <div id="caseAlert" class="alert hidden" style="margin-bottom: 16px;"></div>
+
+                    <!-- Search & Filter Toolbar -->
+                    <div class="patients-toolbar">
+                        <div class="search-input-wrapper">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="caseSearchInput" class="form-input search-input" placeholder="Search by Case ID, location, type, or symptoms..." aria-label="Search emergency cases">
+                            <button type="button" id="clearCaseSearchBtn" class="search-clear-btn hidden" aria-label="Clear search">✕</button>
+                        </div>
+
+                        <div class="toolbar-filters">
+                            <select id="caseStatusFilter" class="filter-select" aria-label="Filter cases by status">
+                                <option value="ALL">All Statuses</option>
+                                <option value="REGISTERED">REGISTERED</option>
+                                <option value="DISPATCHED">DISPATCHED</option>
+                                <option value="IN_TRANSIT">IN_TRANSIT</option>
+                                <option value="ARRIVED">ARRIVED</option>
+                                <option value="COMPLETED">COMPLETED</option>
+                                <option value="CANCELLED">CANCELLED</option>
+                            </select>
+
+                            <select id="casePriorityFilter" class="filter-select" aria-label="Filter cases by priority">
+                                <option value="ALL">All Priorities</option>
+                                <option value="CRITICAL">CRITICAL</option>
+                                <option value="HIGH">HIGH</option>
+                                <option value="MODERATE">MODERATE</option>
+                                <option value="LOW">LOW</option>
+                            </select>
+
+                            <span id="caseCountBadge" class="badge badge-role">0 cases</span>
+                        </div>
+                    </div>
+
+                    <!-- Case State: Loading -->
+                    <div id="caseLoadingState" class="state-container hidden">
+                        <div class="spinner"></div>
+                        <p class="state-title" style="margin-top: 12px;">Loading emergency cases...</p>
+                        <p class="state-desc">Retrieving authorized case records from /api/cases</p>
+                    </div>
+
+                    <!-- Case State: Error -->
+                    <div id="caseErrorState" class="state-container hidden">
+                        <div class="state-icon">⚠️</div>
+                        <p id="caseErrorMessage" class="state-title">Failed to load emergency cases</p>
+                        <p class="state-desc">The server could not complete the request.</p>
+                        <button type="button" id="retryCasesBtn" class="btn btn-primary" style="margin-top: 12px;">Retry</button>
+                    </div>
+
+                    <!-- Case State: Access Restricted -->
+                    <div id="caseRestrictedState" class="state-container hidden">
+                        <div class="state-icon">🔒</div>
+                        <p class="state-title">Access Restricted</p>
+                        <p class="state-desc">Operational emergency case records are restricted based on your system role assignment.</p>
+                    </div>
+
+                    <!-- Case State: Empty -->
+                    <div id="caseEmptyState" class="state-container hidden">
+                        <div class="state-icon">🚨</div>
+                        <p class="state-title">No Emergency Cases</p>
+                        <p id="caseEmptyDesc" class="state-desc">No active emergency case records found.</p>
+                        <button type="button" id="emptyAddCaseBtn" class="btn btn-primary hidden" style="margin-top: 12px;">Register Emergency Case</button>
+                    </div>
+
+                    <!-- Case Records Table -->
+                    <div id="caseTableWrapper" class="data-table-container hidden">
+                        <table class="data-table" aria-label="Emergency Cases Table">
+                            <thead>
+                                <tr>
+                                    <th scope="col" style="width: 70px;">ID</th>
+                                    <th scope="col" style="width: 120px;">Patient</th>
+                                    <th scope="col">Type &amp; Priority</th>
+                                    <th scope="col">Incident Location</th>
+                                    <th scope="col" style="width: 130px;">Status</th>
+                                    <th scope="col" style="text-align: right; width: 140px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="caseTableBody">
+                                <!-- Populated dynamically by cases.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Ambulance Management View -->
+                <div id="viewAmbulances" class="hidden">
+                    <div class="module-header-bar">
+                        <div>
+                            <h3 class="module-view-title">Ambulance Fleet &amp; Tracking</h3>
+                            <p class="module-view-desc">Monitor vehicle availability, onboard medical equipment inventory, and GPS telemetry.</p>
+                        </div>
+                        <div class="module-header-actions">
+                            <button type="button" id="refreshAmbulancesBtn" class="btn btn-secondary" title="Reload from server">
+                                <span>🔄</span> Refresh Fleet
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Role Notification Banner -->
+                    <div id="ambulanceRoleNotice" class="alert alert-info hidden" style="margin-bottom: 16px;"></div>
+
+                    <!-- Ambulance Module Alert (for success/error feedback) -->
+                    <div id="ambulanceAlert" class="alert hidden" style="margin-bottom: 16px;"></div>
+
+                    <!-- Search & Filter Toolbar -->
+                    <div class="patients-toolbar">
+                        <div class="search-input-wrapper">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="ambulanceSearchInput" class="form-input search-input" placeholder="Search by vehicle number, equipment, driver ID, or paramedic ID..." aria-label="Search ambulances">
+                            <button type="button" id="clearAmbulanceSearchBtn" class="search-clear-btn hidden" aria-label="Clear search">✕</button>
+                        </div>
+
+                        <div class="toolbar-filters">
+                            <select id="ambulanceAvailabilityFilter" class="filter-select" aria-label="Filter ambulances by availability">
+                                <option value="ALL">All Availabilities</option>
+                                <option value="AVAILABLE">AVAILABLE</option>
+                                <option value="DISPATCHED">DISPATCHED</option>
+                                <option value="MAINTENANCE">MAINTENANCE</option>
+                            </select>
+
+                            <span id="ambulanceCountBadge" class="badge badge-role">0 vehicles</span>
+                        </div>
+                    </div>
+
+                    <!-- Ambulance State: Loading -->
+                    <div id="ambulanceLoadingState" class="state-container hidden">
+                        <div class="spinner"></div>
+                        <p class="state-title" style="margin-top: 12px;">Loading ambulance fleet...</p>
+                        <p class="state-desc">Retrieving authorized vehicle records from /api/ambulances</p>
+                    </div>
+
+                    <!-- Ambulance State: Error -->
+                    <div id="ambulanceErrorState" class="state-container hidden">
+                        <div class="state-icon">⚠️</div>
+                        <p id="ambulanceErrorMessage" class="state-title">Failed to load ambulances</p>
+                        <p class="state-desc">The server could not complete the request.</p>
+                        <button type="button" id="retryAmbulancesBtn" class="btn btn-primary" style="margin-top: 12px;">Retry</button>
+                    </div>
+
+                    <!-- Ambulance State: Access Restricted -->
+                    <div id="ambulanceRestrictedState" class="state-container hidden">
+                        <div class="state-icon">🔒</div>
+                        <p class="state-title">Access Restricted</p>
+                        <p class="state-desc">Ambulance fleet tracking is restricted based on your system role assignment.</p>
+                    </div>
+
+                    <!-- Ambulance State: Empty -->
+                    <div id="ambulanceEmptyState" class="state-container hidden">
+                        <div class="state-icon">🚑</div>
+                        <p class="state-title">No Ambulances Found</p>
+                        <p id="ambulanceEmptyDesc" class="state-desc">No active ambulance records are registered in the fleet.</p>
+                    </div>
+
+                    <!-- Ambulance Records Table -->
+                    <div id="ambulanceTableWrapper" class="data-table-container hidden">
+                        <table class="data-table" aria-label="Ambulance Fleet Table">
+                            <thead>
+                                <tr>
+                                    <th scope="col" style="width: 70px;">ID</th>
+                                    <th scope="col" style="width: 140px;">Vehicle Number</th>
+                                    <th scope="col" style="width: 130px;">Availability</th>
+                                    <th scope="col">Assigned Crew</th>
+                                    <th scope="col">GPS Coordinates</th>
+                                    <th scope="col">Equipment Inventory</th>
+                                    <th scope="col" style="text-align: right; width: 160px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ambulanceTableBody">
+                                <!-- Populated dynamically by ambulances.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Dispatch Management View -->
+                <div id="viewDispatches" class="hidden">
+                    <div class="module-header-bar">
+                        <div>
+                            <h3 class="module-view-title">Emergency Dispatches</h3>
+                            <p class="module-view-desc">Coordinate emergency vehicle mobilizations, monitor response missions, and manage lifecycle status.</p>
+                        </div>
+                        <div class="module-header-actions">
+                            <button type="button" id="refreshDispatchesBtn" class="btn btn-secondary" title="Reload from server">
+                                <span>🔄</span> Refresh Dispatches
+                            </button>
+                            <button type="button" id="openCreateDispatchBtn" class="btn btn-primary hidden" title="Dispatch ambulance to case">
+                                <span>➕</span> Dispatch Ambulance
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Role Notification Banner (e.g. driver mission scope or restricted view) -->
+                    <div id="dispatchRoleNotice" class="alert alert-info hidden" style="margin-bottom: 16px;"></div>
+
+                    <!-- Dispatch Module Alert (for success/error feedback) -->
+                    <div id="dispatchAlert" class="alert hidden" style="margin-bottom: 16px;"></div>
+
+                    <!-- Search & Filter Toolbar -->
+                    <div class="patients-toolbar">
+                        <div class="search-input-wrapper">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="dispatchSearchInput" class="form-input search-input" placeholder="Search by dispatch ID, case ID, ambulance ID, vehicle number, or status..." aria-label="Search dispatches">
+                            <button type="button" id="clearDispatchSearchBtn" class="search-clear-btn hidden" aria-label="Clear search">✕</button>
+                        </div>
+
+                        <div class="toolbar-filters">
+                            <select id="dispatchStatusFilter" class="filter-select" aria-label="Filter dispatches by status">
+                                <option value="ALL">All Statuses</option>
+                                <option value="DISPATCHED">DISPATCHED</option>
+                                <option value="EN_ROUTE">EN_ROUTE</option>
+                                <option value="ARRIVED">ARRIVED</option>
+                                <option value="COMPLETED">COMPLETED</option>
+                                <option value="CANCELLED">CANCELLED</option>
+                            </select>
+
+                            <span id="dispatchCountBadge" class="badge badge-role">0 dispatches</span>
+                        </div>
+                    </div>
+
+                    <!-- Dispatch State: Loading -->
+                    <div id="dispatchLoadingState" class="state-container hidden">
+                        <div class="spinner"></div>
+                        <p class="state-title" style="margin-top: 12px;">Loading dispatch missions...</p>
+                        <p class="state-desc">Retrieving authorized dispatch records from /api/dispatches</p>
+                    </div>
+
+                    <!-- Dispatch State: Error -->
+                    <div id="dispatchErrorState" class="state-container hidden">
+                        <div class="state-icon">⚠️</div>
+                        <p id="dispatchErrorMessage" class="state-title">Failed to load dispatches</p>
+                        <p class="state-desc">The server could not complete the request.</p>
+                        <button type="button" id="retryDispatchesBtn" class="btn btn-primary" style="margin-top: 12px;">Retry</button>
+                    </div>
+
+                    <!-- Dispatch State: Access Restricted -->
+                    <div id="dispatchRestrictedState" class="state-container hidden">
+                        <div class="state-icon">🔒</div>
+                        <p class="state-title">Access Restricted</p>
+                        <p class="state-desc">Dispatch management is restricted to Dispatchers, Administrators, and assigned Ambulance Drivers.</p>
+                    </div>
+
+                    <!-- Dispatch State: Empty -->
+                    <div id="dispatchEmptyState" class="state-container hidden">
+                        <div class="state-icon">📡</div>
+                        <p class="state-title">No Dispatches Found</p>
+                        <p id="dispatchEmptyDesc" class="state-desc">No active or historical dispatch records match your current view.</p>
+                        <button type="button" id="emptyCreateDispatchBtn" class="btn btn-primary hidden" style="margin-top: 12px;">
+                            <span>➕</span> Dispatch Ambulance
+                        </button>
+                    </div>
+
+                    <!-- Dispatches Records Table -->
+                    <div id="dispatchTableWrapper" class="data-table-container hidden">
+                        <table class="data-table" aria-label="Dispatches Table">
+                            <thead>
+                                <tr>
+                                    <th scope="col" style="width: 70px;">ID</th>
+                                    <th scope="col" style="width: 100px;">Case ID</th>
+                                    <th scope="col" style="width: 160px;">Assigned Ambulance</th>
+                                    <th scope="col" style="width: 130px;">Status</th>
+                                    <th scope="col" style="width: 110px;">ETA (Mins)</th>
+                                    <th scope="col">Timestamps</th>
+                                    <th scope="col" style="text-align: right; width: 170px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dispatchTableBody">
+                                <!-- Populated dynamically by dispatches.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Reports & Analytics View -->
+                <div id="viewReports" class="hidden">
+                    <div class="module-header-bar">
+                        <div>
+                            <h3 class="module-view-title">Operational Reports &amp; Analytics</h3>
+                            <p class="module-view-desc">Real-time statistical summaries, fleet utilization metrics, and response KPIs derived from active REST endpoints.</p>
+                        </div>
+                        <div class="module-header-actions">
+                            <button type="button" id="refreshReportsBtn" class="btn btn-secondary" title="Reload live metrics">
+                                <span>🔄</span> Refresh Analytics
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Verified Data Source Notice Banner -->
+                    <div id="reportsNoticeBanner" class="alert alert-info" style="margin-bottom: 20px; font-size: 13px; line-height: 1.5;">
+                        <strong>Verified Operational Telemetry:</strong> Metrics are computed live from authenticated REST APIs (<code>/api/cases</code>, <code>/api/ambulances</code>, <code>/api/dispatches</code>). Specialized tabular reports from desktop <code>ReportService</code> (such as Patient Vitals and Hospital Bed Readiness) do not currently have corresponding REST endpoints.
+                    </div>
+
+                    <!-- Driver Scope Notice Banner -->
+                    <div id="reportDriverScopeNotice" class="alert alert-warning hidden" style="margin-bottom: 20px; font-size: 13px; line-height: 1.5;">
+                        <strong>Driver Scoped View:</strong> Metrics reflect your assigned cases and vehicle, not the entire fleet.
+                    </div>
+
+                    <!-- Report State: Loading -->
+                    <div id="reportLoadingState" class="state-container hidden">
+                        <div class="spinner"></div>
+                        <p class="state-title" style="margin-top: 12px;">Aggregating operational analytics...</p>
+                        <p class="state-desc">Retrieving live records from verified REST endpoints</p>
+                    </div>
+
+                    <!-- Report State: Error -->
+                    <div id="reportErrorState" class="state-container hidden">
+                        <div class="state-icon">⚠️</div>
+                        <p id="reportErrorMessage" class="state-title">Failed to load reports</p>
+                        <p class="state-desc">One or more reporting endpoints could not be reached.</p>
+                        <button type="button" id="retryReportsBtn" class="btn btn-primary" style="margin-top: 12px;">Retry</button>
+                    </div>
+
+                    <!-- Report State: Access Restricted -->
+                    <div id="reportRestrictedState" class="state-container hidden">
+                        <div class="state-icon">🔒</div>
+                        <p class="state-title">Access Restricted</p>
+                        <p class="state-desc">Reports and analytics require authorized medical, dispatch, or administrative credentials.</p>
+                    </div>
+
+                    <!-- Report Content Area -->
+                    <div id="reportContentArea" class="hidden">
+                        <!-- Top KPI Cards -->
+                        <div id="reportKpiGrid" class="reports-kpi-grid">
+                            <!-- Populated dynamically by reports.js -->
+                        </div>
+
+                        <!-- Analytics Cards Grid -->
+                        <div class="reports-analytics-grid">
+                            <!-- Emergency Cases Analytics -->
+                            <div class="report-card" id="reportCasesCard">
+                                <div class="report-card-header">
+                                    <div>
+                                        <div class="report-card-title">🚨 Emergency Cases Overview</div>
+                                        <div class="report-card-subtitle">Distribution by priority triage and lifecycle status</div>
+                                    </div>
+                                    <span id="reportCasesTotalBadge" class="badge badge-role">0 cases</span>
+                                </div>
+                                <div id="reportCasesPriorityList" class="report-bar-list" style="margin-bottom: 20px;">
+                                    <!-- Priority bars populated dynamically -->
+                                </div>
+                                <div style="font-size: 13px; font-weight: 700; color: var(--navy-900); margin-bottom: 10px;">Lifecycle Status Breakdown</div>
+                                <table class="report-summary-table" aria-label="Cases Status Table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Status</th>
+                                            <th scope="col" style="text-align: right;">Count</th>
+                                            <th scope="col" style="text-align: right;">Share</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="reportCasesStatusBody">
+                                        <!-- Populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Ambulance Fleet Availability -->
+                            <div class="report-card" id="reportAmbulancesCard">
+                                <div class="report-card-header">
+                                    <div>
+                                        <div class="report-card-title">🚑 Ambulance Fleet Readiness</div>
+                                        <div class="report-card-subtitle">Operational fleet distribution and ready units</div>
+                                    </div>
+                                    <span id="reportAmbulancesTotalBadge" class="badge badge-role">0 vehicles</span>
+                                </div>
+                                <div id="reportAmbulanceBarList" class="report-bar-list" style="margin-bottom: 20px;">
+                                    <!-- Availability bars populated dynamically -->
+                                </div>
+                                <div style="font-size: 13px; font-weight: 700; color: var(--navy-900); margin-bottom: 10px;">Fleet Operational Breakdown</div>
+                                <table class="report-summary-table" aria-label="Ambulance Availability Table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Availability</th>
+                                            <th scope="col" style="text-align: right;">Vehicles</th>
+                                            <th scope="col" style="text-align: right;">Percent</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="reportAmbulanceStatusBody">
+                                        <!-- Populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Dispatch Performance & Mission Planned ETA (Admin & Dispatcher) -->
+                            <div class="report-card" id="reportDispatchesCard">
+                                <div class="report-card-header">
+                                    <div>
+                                        <div class="report-card-title">📡 Dispatch Performance &amp; Mission ETAs</div>
+                                        <div class="report-card-subtitle">Mission outcomes and planned dispatch ETA analytics</div>
+                                    </div>
+                                    <span id="reportDispatchesTotalBadge" class="badge badge-role">0 dispatches</span>
+                                </div>
+                                <div id="reportDispatchesRestrictedNotice" class="alert alert-info hidden" style="font-size: 12px;">
+                                    Dispatch fleet analytics are restricted to Dispatchers and Administrators.
+                                </div>
+                                <div id="reportDispatchesBodyContainer">
+                                    <div id="reportDispatchBarList" class="report-bar-list" style="margin-bottom: 20px;">
+                                        <!-- Dispatch outcome bars populated dynamically -->
+                                    </div>
+                                    <div style="font-size: 13px; font-weight: 700; color: var(--navy-900); margin-bottom: 10px;">Mission Outcomes &amp; Planned Dispatch ETAs</div>
+                                    <table class="report-summary-table" aria-label="Dispatch Outcomes Table">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Mission Outcome</th>
+                                                <th scope="col" style="text-align: right;">Dispatches</th>
+                                                <th scope="col" style="text-align: right;">Share</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="reportDispatchStatusBody">
+                                            <!-- Populated dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Architecture & Desktop Reporting Parity Disclosure -->
+                            <div class="report-card" id="reportGapsCard">
+                                <div class="report-card-header">
+                                    <div>
+                                        <div class="report-card-title">📋 Desktop ReportService Parity Audit</div>
+                                        <div class="report-card-subtitle">Comparison between REST web interface and Swing desktop reports</div>
+                                    </div>
+                                    <span class="badge badge-pending">Architecture</span>
+                                </div>
+                                <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                                    <p style="margin-bottom: 12px;">
+                                        The Connected Ambulance System desktop client (<code>ReportFrame</code>) features direct SQL-based reports executed via JDBC in <code>ReportService</code>:
+                                    </p>
+                                    <table class="report-summary-table">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Desktop Report</th>
+                                                <th scope="col">REST Status</th>
+                                                <th scope="col">Note</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td style="font-weight: 600;">Case &amp; Priority Summary</td>
+                                                <td><span class="badge badge-status">Active (Web)</span></td>
+                                                <td>Computed live via <code>/api/cases</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-weight: 600;">Ambulance Utilization</td>
+                                                <td><span class="badge badge-status">Active (Web)</span></td>
+                                                <td>Computed live via <code>/api/ambulances</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-weight: 600;">Dispatch Planned ETA</td>
+                                                <td><span class="badge badge-status">Active (Web)</span></td>
+                                                <td>Average planned dispatch ETA computed live via <code>/api/dispatches</code> (actual response times require backend timestamp mappings)</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-weight: 600;">Patient Vitals Report</td>
+                                                <td><span class="badge badge-pending">Desktop Only</span></td>
+                                                <td>No <code>/api/vitals</code> endpoint in REST API</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-weight: 600;">Hospital Bed Readiness</td>
+                                                <td><span class="badge badge-pending">Desktop Only</span></td>
+                                                <td>No <code>/api/hospitals</code> endpoint in REST API</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-weight: 600;">Server-side Date Filter</td>
+                                                <td><span class="badge badge-pending">Desktop SQL</span></td>
+                                                <td>REST APIs lack <code>startDate</code>/<code>endDate</code> query params</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module Placeholder View -->
+                <div id="viewPlaceholder" class="placeholder-view hidden">
+                    <div id="placeholderIcon" class="placeholder-icon">📁</div>
+                    <h3 id="placeholderTitle">Module Title</h3>
+                    <p id="placeholderDesc">Module description.</p>
+                    <div style="margin-bottom: 20px;">
+                        <span id="placeholderStatusBadge" class="badge badge-pending" style="font-size: 13px; padding: 4px 12px;">API Active • UI in Phase 5E</span>
+                    </div>
+                    <div class="alert alert-info" style="text-align: left; margin-bottom: 24px;">
+                        <span id="placeholderNote">The underlying REST API endpoints are fully active and protected by Spring Security role policies. The interactive browser interface will be connected in Phase 5E.</span>
+                    </div>
+                    <button type="button" id="placeholderBackBtn" class="btn btn-primary">Return to Dashboard</button>
+                </div>
+
+            </main>
+        </div>
+
+        <!-- Patient Details Modal -->
+        <div id="patientDetailsModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="patientDetailsTitle">
+            <div class="modal-dialog">
+                <header class="modal-header">
+                    <h4 id="patientDetailsTitle" class="modal-title">Patient Details</h4>
+                    <button type="button" id="detailHeaderCloseBtn" class="modal-close-btn" aria-label="Close details modal">&times;</button>
+                </header>
+                <div class="modal-body">
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Patient ID</div>
+                            <div id="detailPatientId" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Age &amp; Gender</div>
+                            <div id="detailPatientAgeGender" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item full-width">
+                            <div class="detail-label">Full Name</div>
+                            <div id="detailPatientName" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Emergency Contact</div>
+                            <div id="detailPatientContact" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Blood Group</div>
+                            <div id="detailPatientBloodGroup" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item full-width">
+                            <div class="detail-label">Allergies</div>
+                            <div id="detailPatientAllergies" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item full-width">
+                            <div class="detail-label">Medical History</div>
+                            <div id="detailPatientHistory" class="detail-value">--</div>
+                        </div>
+                    </div>
+                </div>
+                <footer class="modal-footer">
+                    <button type="button" id="detailEditBtn" class="btn btn-primary hidden">Edit Patient</button>
+                    <button type="button" id="detailCloseBtn" class="btn btn-secondary">Close</button>
+                </footer>
+            </div>
+        </div>
+
+        <!-- Patient Form Modal (Register & Edit) -->
+        <div id="patientFormModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="patientFormModalTitle">
+            <div class="modal-dialog">
+                <header class="modal-header">
+                    <h4 id="patientFormModalTitle" class="modal-title">Register New Patient</h4>
+                    <button type="button" id="patientFormHeaderCloseBtn" class="modal-close-btn" aria-label="Close form modal">&times;</button>
+                </header>
+                <form id="patientForm" novalidate>
+                    <div class="modal-body">
+                        <div id="patientFormAlert" class="alert alert-error hidden" style="margin-bottom: 16px;"></div>
+
+                        <div class="form-group">
+                            <label for="patientFormName">Patient Full Name <span style="color: var(--red-500);">*</span></label>
+                            <input type="text" id="patientFormName" class="form-input" required placeholder="e.g. Jane Doe">
+                            <div class="form-hint">Only letters and spaces are allowed.</div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="patientFormAge">Age <span style="color: var(--red-500);">*</span></label>
+                                <input type="number" id="patientFormAge" class="form-input" required min="1" max="120" placeholder="e.g. 35">
+                                <div class="form-hint">1 to 120 years.</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="patientFormGender">Gender <span style="color: var(--red-500);">*</span></label>
+                                <select id="patientFormGender" class="form-select" required>
+                                    <option value="MALE">MALE</option>
+                                    <option value="FEMALE">FEMALE</option>
+                                    <option value="OTHER">OTHER</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="patientFormContact">Emergency Contact (Phone) <span style="color: var(--red-500);">*</span></label>
+                                <input type="tel" id="patientFormContact" class="form-input" required placeholder="e.g. 9876543210">
+                                <div class="form-hint">10 to 15 digits.</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="patientFormBloodGroup">Blood Group</label>
+                                <select id="patientFormBloodGroup" class="form-select">
+                                    <option value="">Unknown / None</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="patientFormAllergies">Known Allergies</label>
+                            <input type="text" id="patientFormAllergies" class="form-input" placeholder="e.g. Penicillin, Peanuts (or None)">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="patientFormHistory">Medical History</label>
+                            <textarea id="patientFormHistory" class="form-textarea" placeholder="e.g. Hypertension, Diabetic, Asthma"></textarea>
+                        </div>
+                    </div>
+                    <footer class="modal-footer">
+                        <button type="button" id="patientFormCancelBtn" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" id="patientFormSubmitBtn" class="btn btn-primary">Register Patient</button>
+                    </footer>
+                </form>
+            </div>
+        </div>
+
+        <!-- Case Details Modal -->
+        <div id="caseDetailsModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="caseDetailsTitle">
+            <div class="modal-dialog">
+                <header class="modal-header">
+                    <h4 id="caseDetailsTitle" class="modal-title">Emergency Case Details</h4>
+                    <button type="button" id="detailCaseHeaderCloseBtn" class="modal-close-btn" aria-label="Close details modal">&times;</button>
+                </header>
+                <div class="modal-body">
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Case ID</div>
+                            <div id="detailCaseId" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Patient Reference</div>
+                            <div id="detailCasePatientId" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Emergency Type</div>
+                            <div id="detailCaseType" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Triage Priority</div>
+                            <div id="detailCasePriority" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item full-width">
+                            <div class="detail-label">Case Lifecycle Status</div>
+                            <div id="detailCaseStatus" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item full-width">
+                            <div class="detail-label">Incident Location</div>
+                            <div id="detailCaseLocation" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item full-width">
+                            <div class="detail-label">Reported Symptoms</div>
+                            <div id="detailCaseSymptoms" class="detail-value">--</div>
+                        </div>
+                    </div>
+                </div>
+                <footer class="modal-footer">
+                    <button type="button" id="detailUpdateStatusBtn" class="btn btn-primary hidden">Update Status</button>
+                    <button type="button" id="detailCaseCloseBtn" class="btn btn-secondary">Close</button>
+                </footer>
+            </div>
+        </div>
+
+        <!-- Register Emergency Case Modal -->
+        <div id="caseRegisterModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="caseRegisterModalTitle">
+            <div class="modal-dialog">
+                <header class="modal-header">
+                    <h4 id="caseRegisterModalTitle" class="modal-title">Register Emergency Case</h4>
+                    <button type="button" id="caseRegisterHeaderCloseBtn" class="modal-close-btn" aria-label="Close registration modal">&times;</button>
+                </header>
+                <form id="caseRegisterForm" novalidate>
+                    <div class="modal-body">
+                        <div id="caseRegisterAlert" class="alert alert-error hidden" style="margin-bottom: 16px;"></div>
+
+                        <div class="form-group">
+                            <label for="caseFormPatientSelect">Patient Reference <span style="color: var(--red-500);">*</span></label>
+                            <select id="caseFormPatientSelect" class="form-select" style="margin-bottom: 6px;">
+                                <option value="">-- Select Existing Patient --</option>
+                            </select>
+                            <div class="form-hint" style="margin-bottom: 8px;">Or enter a registered Patient ID manually:</div>
+                            <input type="number" id="caseFormPatientManualId" class="form-input" min="1" placeholder="e.g. 1">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="caseFormLocation">Incident Location <span style="color: var(--red-500);">*</span></label>
+                            <input type="text" id="caseFormLocation" class="form-input" required placeholder="e.g. MG Road Junction, Bengaluru">
+                            <div class="form-hint">Physical address or landmark of the emergency.</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="caseFormType">Emergency Type <span style="color: var(--red-500);">*</span></label>
+                            <select id="caseFormType" class="form-select" required>
+                                <option value="CARDIAC">CARDIAC (Heart attack, chest pain, cardiac arrest)</option>
+                                <option value="TRAUMA">TRAUMA (Severe fracture, fall, head injury)</option>
+                                <option value="ACCIDENT">ACCIDENT (Road traffic collision, vehicle crash)</option>
+                                <option value="RESPIRATORY">RESPIRATORY (Severe asthma, suffocation, COPD)</option>
+                                <option value="STROKE">STROKE (Paralysis, slurred speech, neurological)</option>
+                                <option value="BURN">BURN (Thermal, chemical, electrical burn)</option>
+                                <option value="POISONING">POISONING (Toxic ingestion, overdose)</option>
+                                <option value="OTHER">OTHER (General acute medical emergency)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="caseFormSymptoms">Observed / Reported Symptoms <span style="color: var(--red-500);">*</span></label>
+                            <textarea id="caseFormSymptoms" class="form-textarea" required placeholder="e.g. Severe chest tightness radiating to left arm, shortness of breath, profuse sweating"></textarea>
+                            <div class="form-hint">Detailed symptoms for priority classification.</div>
+                        </div>
+                    </div>
+                    <footer class="modal-footer">
+                        <button type="button" id="caseRegisterCancelBtn" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" id="caseRegisterSubmitBtn" class="btn btn-primary">Register Incident</button>
+                    </footer>
+                </form>
+            </div>
+        </div>
+
+        <!-- Case Status Transition Modal -->
+        <div id="caseStatusModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="caseStatusModalTitle">
+            <div class="modal-dialog">
+                <header class="modal-header">
+                    <h4 id="caseStatusModalTitle" class="modal-title">Update Case Status</h4>
+                    <button type="button" id="caseStatusHeaderCloseBtn" class="modal-close-btn" aria-label="Close status modal">&times;</button>
+                </header>
+                <div class="modal-body">
+                    <div id="statusModalAlert" class="alert hidden" style="margin-bottom: 16px;"></div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background-color: var(--bg-surface-secondary); border-radius: var(--radius-md); margin-bottom: 16px;">
+                        <div>
+                            <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">INCIDENT:</span>
+                            <span id="statusModalCaseId" style="font-weight: 700; margin-left: 6px;">#--</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">CURRENT STATUS:</span>
+                            <div id="statusModalCurrentStatus"></div>
+                        </div>
+                    </div>
+
+                    <p style="font-size: 13px; font-weight: 600; color: var(--navy-900); margin-bottom: 4px;">Select Allowed Target Transition:</p>
+                    <p class="form-hint" style="margin-bottom: 12px;">Updates the lifecycle status of this incident. Ambulance assignment and vehicle mobilization are performed through Dispatches.</p>
+
+                    <div id="statusModalOptionsContainer" class="transition-options-container">
+                        <!-- Populated dynamically with valid transitions based on backend rules -->
+                    </div>
+
+                    <div id="statusModalDispatchNotice" class="alert alert-info hidden" style="margin-top: 14px;">
+                        <div style="font-weight: 600; margin-bottom: 4px;">Ambulance Dispatch Required</div>
+                        <div>To assign an emergency vehicle and mobilize a crew, please use the <strong>Dispatches</strong> module. Manual case updates cannot mobilize an ambulance without an active dispatch record.</div>
+                        <button type="button" id="statusModalGoDispatchesBtn" class="btn btn-secondary btn-xs" style="margin-top: 10px;">Switch to Dispatches Module</button>
+                    </div>
+
+                    <div id="statusModalTerminalNotice" class="alert alert-info hidden" style="margin-top: 14px;">
+                        This case is in a terminal state (COMPLETED or CANCELLED). No further transitions are permitted by the system.
+                    </div>
+                </div>
+                <footer class="modal-footer">
+                    <button type="button" id="caseStatusCancelBtn" class="btn btn-secondary">Cancel</button>
+                    <button type="button" id="caseStatusSubmitBtn" class="btn btn-primary" disabled>Apply Transition</button>
+                </footer>
+            </div>
+        </div>
+
+        <!-- Ambulance Details Modal -->
+        <div id="ambulanceDetailsModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ambulanceDetailsTitle">
+            <div class="modal-dialog">
+                <header class="modal-header">
+                    <h4 id="ambulanceDetailsTitle" class="modal-title">Ambulance Details</h4>
+                    <button type="button" id="detailAmbulanceHeaderCloseBtn" class="modal-close-btn" aria-label="Close details modal">&times;</button>
+                </header>
+                <div class="modal-body">
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Ambulance ID</div>
+                            <div id="detailAmbulanceId" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Vehicle Number</div>
+                            <div id="detailAmbulanceVehicleNumber" class="detail-value" style="font-weight: 700;">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Availability Status</div>
+                            <div id="detailAmbulanceAvailability" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Assigned Driver</div>
+                            <div id="detailAmbulanceDriver" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Assigned Paramedic</div>
+                            <div id="detailAmbulanceParamedic" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">GPS Latitude</div>
+                            <div id="detailAmbulanceLat" class="detail-value" style="font-family: monospace;">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">GPS Longitude</div>
+                            <div id="detailAmbulanceLng" class="detail-value" style="font-family: monospace;">--</div>
+                        </div>
+                        <div class="detail-item full-width">
+                            <div class="detail-label">Onboard Equipment Inventory</div>
+                            <div id="detailAmbulanceEquipment" class="detail-value">--</div>
+                        </div>
+                    </div>
+                </div>
+                <footer class="modal-footer">
+                    <button type="button" id="detailAmbulanceUpdateLocationBtn" class="btn btn-primary hidden">Update Location</button>
+                    <button type="button" id="detailAmbulanceCloseBtn" class="btn btn-secondary">Close</button>
+                </footer>
+            </div>
+        </div>
+
+        <!-- Ambulance Location Modal -->
+        <div id="ambulanceLocationModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ambulanceLocationTitle">
+            <div class="modal-dialog">
+                <header class="modal-header">
+                    <h4 id="ambulanceLocationTitle" class="modal-title">Update Vehicle Location</h4>
+                    <button type="button" id="ambLocHeaderCloseBtn" class="modal-close-btn" aria-label="Close location modal">&times;</button>
+                </header>
+                <form id="ambLocationForm" novalidate>
+                    <div class="modal-body">
+                        <div id="ambLocAlert" class="alert hidden" style="margin-bottom: 16px;"></div>
+
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background-color: var(--bg-surface-secondary); border-radius: var(--radius-md); margin-bottom: 16px;">
+                            <div>
+                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">VEHICLE:</span>
+                                <span id="ambLocVehicleNumber" style="font-weight: 700; margin-left: 6px;">--</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">STATUS:</span>
+                                <div id="ambLocAvailability"></div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info" style="margin-bottom: 16px; font-size: 12px; line-height: 1.5;">
+                            <strong>Manual Telemetry Input:</strong> Coordinates submitted through this form update manual telemetry logs. Automated browser geolocation is not requested. Speed is recorded in vehicle tracking logs.
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="ambLocInputLat">GPS Latitude <span style="color: var(--red-500);">*</span></label>
+                                <input type="number" step="any" min="-90" max="90" id="ambLocInputLat" class="form-input" required placeholder="e.g. 12.9716">
+                                <div class="form-hint">-90.0000 to +90.0000</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="ambLocInputLng">GPS Longitude <span style="color: var(--red-500);">*</span></label>
+                                <input type="number" step="any" min="-180" max="180" id="ambLocInputLng" class="form-input" required placeholder="e.g. 77.5946">
+                                <div class="form-hint">-180.0000 to +180.0000</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ambLocInputSpeed">Speed (km/h)</label>
+                            <input type="number" step="0.1" min="0" max="250" id="ambLocInputSpeed" class="form-input" placeholder="e.g. 45.0 (Optional)">
+                            <div class="form-hint">Optional. 0.0 to 250.0 km/h.</div>
+                        </div>
+                    </div>
+                    <footer class="modal-footer">
+                        <button type="button" id="ambLocCancelBtn" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" id="ambLocSubmitBtn" class="btn btn-primary">Save Location</button>
+                    </footer>
+                </form>
+            </div>
+        </div>
+
+        <!-- Create Dispatch Modal -->
+        <div id="dispatchCreateModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="dispatchCreateTitle">
+            <div class="modal-dialog">
+                <header class="modal-header">
+                    <h4 id="dispatchCreateTitle" class="modal-title">Dispatch Ambulance to Incident</h4>
+                    <button type="button" id="dispatchCreateHeaderCloseBtn" class="modal-close-btn" aria-label="Close dispatch modal">&times;</button>
+                </header>
+                <form id="dispatchCreateForm" novalidate>
+                    <div class="modal-body">
+                        <div id="dispatchCreateAlert" class="alert alert-error hidden" style="margin-bottom: 16px;"></div>
+
+                        <div class="alert alert-info" style="margin-bottom: 16px; font-size: 12px; line-height: 1.5;">
+                            <strong>Atomic Dispatch Transaction:</strong> Assigning an ambulance updates the Emergency Case to <code>DISPATCHED</code> and reserves the Ambulance to <code>DISPATCHED</code> in a single ACID transaction.
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dispatchFormCaseSelect">Eligible Emergency Case <span style="color: var(--red-500);">*</span></label>
+                            <select id="dispatchFormCaseSelect" class="form-select" style="margin-bottom: 6px;">
+                                <option value="">-- Loading Registered Cases... --</option>
+                            </select>
+                            <div class="form-hint" style="margin-bottom: 8px;">Or enter a registered Case ID manually:</div>
+                            <input type="number" id="dispatchFormCaseManualId" class="form-input" min="1" placeholder="e.g. 1">
+                            <div class="form-hint">Only emergency cases in REGISTERED status can be dispatched.</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dispatchFormAmbulanceSelect">Available Ambulance <span style="color: var(--red-500);">*</span></label>
+                            <select id="dispatchFormAmbulanceSelect" class="form-select" style="margin-bottom: 6px;">
+                                <option value="">-- Loading Available Ambulances... --</option>
+                            </select>
+                            <div class="form-hint" style="margin-bottom: 8px;">Or enter an available Ambulance ID manually:</div>
+                            <input type="number" id="dispatchFormAmbulanceManualId" class="form-input" min="1" placeholder="e.g. 1">
+                            <div class="form-hint">Only ambulances with AVAILABLE status can be dispatched.</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dispatchFormEta">Estimated Arrival Time (ETA Minutes) <span style="color: var(--red-500);">*</span></label>
+                            <input type="number" id="dispatchFormEta" class="form-input" required min="0" max="300" value="15" placeholder="e.g. 15">
+                            <div class="form-hint">Expected arrival time in minutes (0 to 300 minutes).</div>
+                        </div>
+                    </div>
+                    <footer class="modal-footer">
+                        <button type="button" id="dispatchCreateCancelBtn" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" id="dispatchCreateSubmitBtn" class="btn btn-primary">Mobilize Ambulance</button>
+                    </footer>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dispatch Details Modal -->
+        <div id="dispatchDetailsModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="dispatchDetailsTitle">
+            <div class="modal-dialog">
+                <header class="modal-header">
+                    <h4 id="dispatchDetailsTitle" class="modal-title">Dispatch Mission Details</h4>
+                    <button type="button" id="detailDispatchHeaderCloseBtn" class="modal-close-btn" aria-label="Close details modal">&times;</button>
+                </header>
+                <div class="modal-body">
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Dispatch Record ID</div>
+                            <div id="detailDispatchId" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Emergency Case ID</div>
+                            <div id="detailDispatchCaseId" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Assigned Ambulance</div>
+                            <div id="detailDispatchAmbulance" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Mission Status</div>
+                            <div id="detailDispatchStatus" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Estimated Arrival Time</div>
+                            <div id="detailDispatchEta" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Dispatch Initiated At</div>
+                            <div id="detailDispatchTime" class="detail-value">--</div>
+                        </div>
+                        <div class="detail-item full-width">
+                            <div class="detail-label">Actual Arrival Time</div>
+                            <div id="detailDispatchArrivalTime" class="detail-value">--</div>
+                        </div>
+                    </div>
+                </div>
+                <footer class="modal-footer">
+                    <button type="button" id="detailDispatchUpdateStatusBtn" class="btn btn-primary hidden">Update Status</button>
+                    <button type="button" id="detailDispatchCloseBtn" class="btn btn-secondary">Close</button>
+                </footer>
+            </div>
+        </div>
+
+        <!-- Dispatch Status Transition Modal -->
+        <div id="dispatchStatusModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="dispatchStatusModalTitle">
+            <div class="modal-dialog">
+                <header class="modal-header">
+                    <h4 id="dispatchStatusModalTitle" class="modal-title">Update Dispatch Status</h4>
+                    <button type="button" id="dispatchStatusHeaderCloseBtn" class="modal-close-btn" aria-label="Close status modal">&times;</button>
+                </header>
+                <div class="modal-body">
+                    <div id="dispatchStatusAlert" class="alert hidden" style="margin-bottom: 16px;"></div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background-color: var(--bg-surface-secondary); border-radius: var(--radius-md); margin-bottom: 16px;">
+                        <div>
+                            <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">DISPATCH:</span>
+                            <span id="dispatchStatusModalId" style="font-weight: 700; margin-left: 6px;">#--</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">CURRENT STATUS:</span>
+                            <div id="dispatchStatusModalCurrent"></div>
+                        </div>
+                    </div>
+
+                    <p style="font-size: 13px; font-weight: 600; color: var(--navy-900); margin-bottom: 4px;">Select Allowed Target Transition:</p>
+                    <p class="form-hint" style="margin-bottom: 12px;">Transitions advance the mission lifecycle and synchronize case and ambulance statuses atomically.</p>
+
+                    <div id="dispatchStatusOptionsContainer" class="transition-options-container">
+                        <!-- Populated dynamically with valid transitions based on backend rules -->
+                    </div>
+
+                    <div id="dispatchStatusTerminalNotice" class="alert alert-info hidden" style="margin-top: 14px;">
+                        This dispatch is in a terminal state (COMPLETED or CANCELLED). No further transitions are permitted by the system.
+                    </div>
+                </div>
+                <footer class="modal-footer">
+                    <button type="button" id="dispatchStatusCancelBtn" class="btn btn-secondary">Cancel</button>
+                    <button type="button" id="dispatchStatusSubmitBtn" class="btn btn-primary" disabled>Apply Status Update</button>
+                </footer>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/patients.js"></script>
+    <script src="/js/cases.js"></script>
+    <script src="/js/ambulances.js"></script>
+    <script src="/js/dispatches.js"></script>
+    <script src="/js/reports.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

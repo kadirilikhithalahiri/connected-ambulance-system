@@ -1,6 +1,7 @@
 package com.abc.emergency;
 
 import com.abc.emergency.util.DBConnection;
+import com.abc.emergency.util.PasswordUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,50 +11,31 @@ public class PasswordCheck {
 
     public static void main(String[] args) {
 
-        String sql =
-                "SELECT username, password_hash " +
-                "FROM Users WHERE username='paramedic01'";
+        String targetUser = args.length > 0 ? args[0] : "synthetic_user";
+
+        String sql = "SELECT username, password_hash FROM Users WHERE username = ?";
 
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement =
-                     connection.prepareStatement(sql);
-             ResultSet resultSet =
-                     statement.executeQuery()) {
+             PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            if (resultSet.next()) {
+            statement.setString(1, targetUser);
 
-                String storedPassword =
-                        resultSet.getString("password_hash");
+            try (ResultSet resultSet = statement.executeQuery()) {
 
-                String expectedPassword =
-                        "paramedic123";
+                if (resultSet.next()) {
+                    String stored = resultSet.getString("password_hash");
+                    boolean isBcrypt = PasswordUtil.isBCryptHash(stored);
 
-                System.out.println(
-                        "Username: "
-                                + resultSet.getString("username")
-                );
-
-                System.out.println(
-                        "Password matches paramedic123: "
-                                + expectedPassword.equals(storedPassword)
-                );
-
-                System.out.println(
-                        "Stored password has leading/trailing spaces: "
-                                + !storedPassword.equals(
-                                        storedPassword.trim()
-                                )
-                );
-
-            } else {
-                System.out.println("User not found.");
+                    System.out.println("Username: " + resultSet.getString("username"));
+                    System.out.println("Format: " + (isBcrypt ? "BCrypt Hash" : "Legacy Plaintext"));
+                    System.out.println("Length: " + (stored != null ? stored.length() : 0));
+                } else {
+                    System.out.println("User not found: " + targetUser);
+                }
             }
 
         } catch (Exception e) {
-            System.out.println(
-                    "Password check failed: "
-                            + e.getMessage()
-            );
+            System.out.println("Password check failed: " + e.getMessage());
         }
     }
 }

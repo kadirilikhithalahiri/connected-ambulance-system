@@ -2,6 +2,7 @@ package com.abc.emergency.gui;
 
 import com.abc.emergency.dao.UserDAO;
 import com.abc.emergency.model.User;
+import com.abc.emergency.service.LoginService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,11 +11,16 @@ public class LoginFrame extends JFrame {
 
     private JTextField usernameField;
     private JPasswordField passwordField;
-    private UserDAO userDAO;
+    private final UserDAO userDAO;
+    private final LoginService loginService;
 
     public LoginFrame() {
+        this(new LoginService(), new UserDAO());
+    }
 
-        userDAO = new UserDAO();
+    public LoginFrame(LoginService loginService, UserDAO userDAO) {
+        this.loginService = loginService != null ? loginService : new LoginService();
+        this.userDAO = userDAO != null ? userDAO : new UserDAO();
 
         setTitle("ABC Emergency Medical Services");
         setSize(500, 350);
@@ -75,9 +81,7 @@ public class LoginFrame extends JFrame {
         add(mainPanel);
 
         loginButton.addActionListener(e -> login());
-
         clearButton.addActionListener(e -> clearFields());
-
         passwordField.addActionListener(e -> login());
     }
 
@@ -106,35 +110,25 @@ public class LoginFrame extends JFrame {
             return;
         }
 
-        User user = userDAO.getUserByUsername(username);
+        User user = loginService.login(username, password);
 
         if (user == null) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Invalid username or password.",
-                    "Login Failed",
-                    JOptionPane.ERROR_MESSAGE
-            );
-            return;
-        }
-
-        if (!user.isActive()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "This user account is inactive.",
-                    "Login Failed",
-                    JOptionPane.ERROR_MESSAGE
-            );
-            return;
-        }
-
-        if (!password.equals(user.getPasswordHash())) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Invalid username or password.",
-                    "Login Failed",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            User existingUser = userDAO.getUserByUsername(username);
+            if (existingUser != null && !existingUser.isActive()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "This user account is inactive.",
+                        "Login Failed",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            } else {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Invalid username or password.",
+                        "Login Failed",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
             return;
         }
 

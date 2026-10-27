@@ -3,6 +3,7 @@ package com.abc.emergency.service;
 import com.abc.emergency.dao.UserDAO;
 import com.abc.emergency.model.User;
 import com.abc.emergency.util.DBConnection;
+import com.abc.emergency.util.PasswordUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,7 +13,11 @@ public class LoginService {
     private final UserDAO userDAO;
 
     public LoginService() {
-        userDAO = new UserDAO();
+        this(new UserDAO());
+    }
+
+    public LoginService(UserDAO userDAO) {
+        this.userDAO = userDAO;
     }
 
     public User login(String username, String password) {
@@ -41,10 +46,38 @@ public class LoginService {
             return null;
         }
 
-        if (!user.getPasswordHash().equals(password)) {
+        String storedPasswordOrHash = user.getPasswordHash();
+
+        if (!PasswordUtil.checkPassword(password, storedPasswordOrHash)) {
             System.out.println("Invalid username or password.");
             logLoginAttempt(user.getUserId(), "FAILED");
             return null;
+        }
+
+        // On-login legacy password migration to BCrypt
+        if (!PasswordUtil.isBCryptHash(storedPasswordOrHash)) {
+            String newHash = PasswordUtil.hashPassword(password);
+            boolean updated = userDAO.updatePasswordHashConditional(
+                    user.getUserId(),
+                    storedPasswordOrHash,
+                    newHash
+            );
+
+            if (!updated) {
+                // Check if a concurrent login already migrated the password successfully
+                User refreshedUser = userDAO.getUserById(user.getUserId());
+                if (refreshedUser != null
+                        && PasswordUtil.isBCryptHash(refreshedUser.getPasswordHash())
+                        && PasswordUtil.checkPassword(password, refreshedUser.getPasswordHash())) {
+                    user.setPasswordHash(refreshedUser.getPasswordHash());
+                } else {
+                    System.out.println("Security migration failed. Login aborted for safety.");
+                    logLoginAttempt(user.getUserId(), "FAILED");
+                    return null;
+                }
+            } else {
+                user.setPasswordHash(newHash);
+            }
         }
 
         logLoginAttempt(user.getUserId(), "SUCCESS");
@@ -102,7 +135,7 @@ public class LoginService {
         }
     }
 
-    private void logLoginAttempt(int userId, String status) {
+    protected void logLoginAttempt(int userId, String status) {
 
         if (userId <= 0) {
             return;
