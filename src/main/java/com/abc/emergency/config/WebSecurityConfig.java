@@ -35,7 +35,8 @@ public class WebSecurityConfig {
                 .csrfTokenRequestHandler(requestHandler)
                 .ignoringRequestMatchers(
                         "/api/auth/login",
-                        "/api/auth/csrf"
+                        "/api/auth/csrf",
+                        "/api/health"
                 )
             )
             .authorizeHttpRequests(auth -> auth
@@ -51,7 +52,8 @@ public class WebSecurityConfig {
                 ).permitAll()
                 .requestMatchers(
                         "/api/auth/login",
-                        "/api/auth/csrf"
+                        "/api/auth/csrf",
+                        "/api/health"
                 ).permitAll()
 
                 // Role-restricted endpoint prefixes based on the six system roles
