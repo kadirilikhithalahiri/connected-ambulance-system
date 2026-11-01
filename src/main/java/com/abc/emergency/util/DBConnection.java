@@ -17,8 +17,15 @@ public class DBConnection {
     public static Connection getConnection(String url, String user, String password) throws SQLException {
         // Fail-closed validation before any connection attempt
         try {
-            DatabaseSecurityValidator.validate(url, user, password);
+            String profile = System.getenv("SPRING_PROFILES_ACTIVE");
+            if ("production".equalsIgnoreCase(profile)) {
+                ProductionDatabaseSecurityValidator.validate(url, user, password);
+            } else {
+                DatabaseSecurityValidator.validate(url, user, password);
+            }
         } catch (DatabaseSecurityException e) {
+            throw new SQLException("Database connection blocked by security policy: " + e.getMessage(), e);
+        } catch (RuntimeException e) {
             throw new SQLException("Database connection blocked by security policy: " + e.getMessage(), e);
         }
 
