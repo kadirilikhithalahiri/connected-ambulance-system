@@ -100,7 +100,8 @@ public class HealthController {
             // Self-healing: if no ADMIN exists, seed the standard demo roles
             boolean hasAdmin = users.stream().anyMatch(u -> "ADMIN".equalsIgnoreCase((String) u.get("role")));
             if (!hasAdmin) {
-                ensureDemoUsersExist(conn);
+                List<String> seedLog = ensureDemoUsersExist(conn);
+                data.put("seedLog", seedLog);
                 // Refresh users list
                 users.clear();
                 try (PreparedStatement stmt = conn.prepareStatement(USER_SQL);
@@ -138,18 +139,20 @@ public class HealthController {
         return ResponseEntity.ok(new ApiResponse<>(200, "System healthy", data));
     }
 
-    private void ensureDemoUsersExist(Connection conn) {
+    private List<String> ensureDemoUsersExist(Connection conn) {
+        List<String> log = new ArrayList<>();
         String[][] demoUsers = {
                 {"admin_test", "AdminPass123!", "System Administrator", "ADMIN", "9000000001"},
                 {"dispatcher_test", "DispatcherPass123!", "Primary Dispatcher", "DISPATCHER", "9000000002"},
-                {"doctor_test", "DoctorPass123!", "Dr. Robert Smith", "EMERGENCY_DOCTOR", "9000000004"},
+                {"doctor_test", "DoctorPass123!", "Dr Robert Smith", "EMERGENCY_DOCTOR", "9000000004"},
                 {"hospital_admin_test", "HospitalPass123!", "Hospital Operations Director", "HOSPITAL_ADMIN", "9000000006"},
                 {"paramedic_test", "SecurePass#123", "Lead Paramedic", "PARAMEDIC", "9000000003"},
                 {"driver_active", "DriverPass123!", "Active Mission Driver", "AMBULANCE_DRIVER", "9000000005"}
         };
 
-        com.abc.emergency.service.UserService userService = new com.abc.emergency.service.UserService();
-        com.abc.emergency.dao.UserDAO userDAO = new com.abc.emergency.dao.UserDAO();
+        String checkSql = "SELECT user_id FROM users WHERE username = ?";
+        String insertSql = "INSERT INTO users (username, password_hash, full_name, role, phone, active) VALUES (?, ?, ?, ?, ?, 1)";
+        String updateSql = "UPDATE users SET password_hash = ?, active = 1 WHERE user_id = ?";
 
         for (String[] demo : demoUsers) {
             String username = demo[0];
@@ -158,42 +161,59 @@ public class HealthController {
             String role = demo[3];
             String phone = demo[4];
 
-            com.abc.emergency.model.User existing = userDAO.getUserByUsername(username);
-            if (existing == null) {
-                userService.registerUser(username, password, name, role, phone);
-            } else {
-                try (PreparedStatement stmt = conn.prepareStatement(
-                        "UPDATE users SET password_hash = ?, active = 1 WHERE user_id = ?")) {
-                    stmt.setString(1, com.abc.emergency.util.PasswordUtil.hashPassword(password));
-                    stmt.setInt(2, existing.getUserId());
-                    stmt.executeUpdate();
-                } catch (Exception ignored) {
+            try {
+                int existingId = -1;
+                try (PreparedStatement chk = conn.prepareStatement(checkSql)) {
+                    chk.setString(1, username);
+                    try (ResultSet rs = chk.executeQuery()) {
+                        if (rs.next()) {
+                            existingId = rs.getInt(1);
+                        }
+                    }
                 }
+
+                if (existingId < 0) {
+                    try (PreparedStatement ins = conn.prepareStatement(insertSql)) {
+                        ins.setString(1, username);
+                        ins.setString(2, com.abc.emergency.util.PasswordUtil.hashPassword(password));
+                        ins.setString(3, name);
+                        ins.setString(4, role);
+                        ins.setString(5, phone);
+                        int affected = ins.executeUpdate();
+                        log.add("Inserted " + username + " (" + role + "): " + affected);
+                    }
+                } else {
+                    try (PreparedStatement upd = conn.prepareStatement(updateSql)) {
+                        upd.setString(1, com.abc.emergency.util.PasswordUtil.hashPassword(password));
+                        upd.setInt(2, existingId);
+                        int affected = upd.executeUpdate();
+                        log.add("Updated " + username + " (" + role + "): " + affected);
+                    }
+                }
+            } catch (Exception e) {
+                log.add("Error for " + username + ": " + e.getMessage());
             }
         }
 
-        // Also ensure existing paramedic01 and driver01 have known valid passwords if present
-        com.abc.emergency.model.User p01 = userDAO.getUserByUsername("paramedic01");
-        if (p01 != null) {
-            try (PreparedStatement stmt = conn.prepareStatement(
-                    "UPDATE users SET password_hash = ?, active = 1 WHERE user_id = ?")) {
-                stmt.setString(1, com.abc.emergency.util.PasswordUtil.hashPassword("SecurePass#123"));
-                stmt.setInt(2, p01.getUserId());
-                stmt.executeUpdate();
-            } catch (Exception ignored) {
+        // Also update existing paramedic01 and driver01 passwords
+        String[][] existingUpdates = {
+                {"paramedic01", "SecurePass#123"},
+                {"driver01", "DriverPass123!"}
+        };
+        for (String[] pair : existingUpdates) {
+            String uname = pair[0];
+            String pwd = pair[1];
+            try (PreparedStatement upd = conn.prepareStatement("UPDATE users SET password_hash = ?, active = 1 WHERE username = ?")) {
+                upd.setString(1, com.abc.emergency.util.PasswordUtil.hashPassword(pwd));
+                upd.setString(2, uname);
+                int aff = upd.executeUpdate();
+                log.add("Updated " + uname + ": " + aff);
+            } catch (Exception e) {
+                log.add("Error updating " + uname + ": " + e.getMessage());
             }
         }
 
-        com.abc.emergency.model.User d01 = userDAO.getUserByUsername("driver01");
-        if (d01 != null) {
-            try (PreparedStatement stmt = conn.prepareStatement(
-                    "UPDATE users SET password_hash = ?, active = 1 WHERE user_id = ?")) {
-                stmt.setString(1, com.abc.emergency.util.PasswordUtil.hashPassword("DriverPass123!"));
-                stmt.setInt(2, d01.getUserId());
-                stmt.executeUpdate();
-            } catch (Exception ignored) {
-            }
-        }
+        return log;
     }
 
     @GetMapping("/seed-demo-users")
