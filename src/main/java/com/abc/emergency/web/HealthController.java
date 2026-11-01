@@ -51,6 +51,32 @@ public class HealthController {
             }
             data.put("tables", tables);
 
+            // Ensure case-insensitive compatibility views exist for DAOs that use PascalCase
+            String[][] tableViews = {
+                    {"Users", "users"},
+                    {"Patients", "patients"},
+                    {"Ambulances", "ambulances"},
+                    {"Ambulance_Crew", "ambulance_crew"},
+                    {"Emergency_Cases", "emergency_cases"},
+                    {"Dispatch_Records", "dispatch_records"},
+                    {"Login_Log", "login_log"},
+                    {"Patient_Vitals", "patient_vitals"},
+                    {"Ambulance_Tracking", "ambulance_tracking"},
+                    {"Hospitals", "hospitals"},
+                    {"Hospital_Facilities", "hospital_facilities"},
+                    {"Alerts", "alerts"},
+                    {"AI_Triage", "ai_triage"},
+                    {"System_Settings", "system_settings"},
+                    {"Reports", "reports"},
+                    {"Audit_Log", "audit_log"}
+            };
+            for (String[] v : tableViews) {
+                try (PreparedStatement stmt = conn.prepareStatement("CREATE OR REPLACE VIEW " + v[0] + " AS SELECT * FROM " + v[1])) {
+                    stmt.executeUpdate();
+                } catch (Exception ignored) {
+                }
+            }
+
             // Check non-sensitive user metadata
             boolean hasUsers = tables.stream().anyMatch(t -> t.equalsIgnoreCase("users"));
             if (hasUsers) {

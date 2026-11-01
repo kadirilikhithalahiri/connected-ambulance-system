@@ -13,7 +13,7 @@ public class UserDAO {
     public boolean addUser(User user) {
 
         String sql = """
-                INSERT INTO Users
+                INSERT INTO users
                 (username, password_hash, full_name, role, phone, active)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """;
@@ -41,7 +41,7 @@ public class UserDAO {
         String sql = """
                 SELECT user_id, username, password_hash,
                        full_name, role, phone, active
-                FROM Users
+                FROM users
                 WHERE username = ?
                 """;
 
@@ -75,7 +75,7 @@ public class UserDAO {
 
     public User getUserById(int userId) {
 
-        String sql = "SELECT * FROM Users WHERE user_id = ?";
+        String sql = "SELECT * FROM users WHERE user_id = ?";
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -116,7 +116,7 @@ public class UserDAO {
         String sql = """
                 SELECT user_id, username, password_hash,
                        full_name, role, phone, active
-                FROM Users
+                FROM users
                 WHERE role = ?
                   AND active = TRUE
                 LIMIT 1
@@ -155,7 +155,7 @@ public class UserDAO {
             return false;
         }
 
-        String sql = "UPDATE Users SET password_hash = ? WHERE user_id = ?";
+        String sql = "UPDATE users SET password_hash = ? WHERE user_id = ?";
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -176,7 +176,7 @@ public class UserDAO {
             return false;
         }
 
-        String sql = "UPDATE Users SET password_hash = ? WHERE user_id = ? AND password_hash = ?";
+        String sql = "UPDATE users SET password_hash = ? WHERE user_id = ? AND password_hash = ?";
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {

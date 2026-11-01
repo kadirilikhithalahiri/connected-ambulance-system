@@ -105,7 +105,7 @@ public class LoginService {
         }
 
         String sql = """
-                UPDATE Login_Log
+                UPDATE login_log
                 SET logout_time = CURRENT_TIMESTAMP
                 WHERE user_id = ?
                   AND login_status = 'SUCCESS'
@@ -142,7 +142,7 @@ public class LoginService {
         }
 
         String sql = """
-                INSERT INTO Login_Log
+                INSERT INTO login_log
                 (user_id, login_status)
                 VALUES (?, ?)
                 """;
