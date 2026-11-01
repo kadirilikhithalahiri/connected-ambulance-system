@@ -61,8 +61,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception ex) {
         ex.printStackTrace();
-        String message = ex.getClass().getSimpleName() + ": " + ex.getMessage();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse<>(500, message, null));
+                .body(new ApiResponse<>(500, "An internal server error occurred. Please contact system administrator.", null));
     }
 }

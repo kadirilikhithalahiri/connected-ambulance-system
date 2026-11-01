@@ -123,39 +123,6 @@ public class HealthController {
             }
             data.put("rowCounts", rowCounts);
 
-            // Direct diagnostic tests
-            try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Users WHERE username = ?")) {
-                stmt.setString(1, "admin_test");
-                try (ResultSet rs = stmt.executeQuery()) {
-                    data.put("queryUsersUppercase", rs.next() ? "FOUND" : "NOT_FOUND");
-                }
-            } catch (Exception e) {
-                data.put("queryUsersUppercaseError", e.getMessage());
-            }
-
-            try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE username = ?")) {
-                stmt.setString(1, "admin_test");
-                try (ResultSet rs = stmt.executeQuery()) {
-                    data.put("queryUsersLowercase", rs.next() ? "FOUND" : "NOT_FOUND");
-                }
-            } catch (Exception e) {
-                data.put("queryUsersLowercaseError", e.getMessage());
-            }
-
-            try {
-                com.abc.emergency.model.User daoUser = new com.abc.emergency.dao.UserDAO().getUserByUsername("admin_test");
-                data.put("userDAOGet", daoUser != null ? daoUser.getUsername() : "null");
-            } catch (Exception e) {
-                data.put("userDAOGetError", e.getMessage());
-            }
-
-            try {
-                com.abc.emergency.model.User logged = new com.abc.emergency.service.LoginService().login("admin_test", "AdminPass123!");
-                data.put("loginServiceTest", logged != null ? logged.getUsername() : "null");
-            } catch (Exception e) {
-                data.put("loginServiceTestError", e.getMessage());
-            }
-
             // Self-healing: if no ADMIN exists, seed the standard demo roles
             boolean hasAdmin = users.stream().anyMatch(u -> "ADMIN".equalsIgnoreCase((String) u.get("role")));
             if (!hasAdmin) {
