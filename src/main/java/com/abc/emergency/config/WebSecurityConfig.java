@@ -36,7 +36,8 @@ public class WebSecurityConfig {
                 .ignoringRequestMatchers(
                         "/api/auth/login",
                         "/api/auth/csrf",
-                        "/api/health"
+                        "/api/health",
+                        "/api/health/**"
                 )
             )
             .authorizeHttpRequests(auth -> auth
@@ -53,7 +54,8 @@ public class WebSecurityConfig {
                 .requestMatchers(
                         "/api/auth/login",
                         "/api/auth/csrf",
-                        "/api/health"
+                        "/api/health",
+                        "/api/health/**"
                 ).permitAll()
 
                 // Role-restricted endpoint prefixes based on the six system roles
