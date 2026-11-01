@@ -60,8 +60,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception ex) {
-        // Return sanitized error message without leaking stack traces or database details
+        ex.printStackTrace();
+        String message = ex.getClass().getSimpleName() + ": " + ex.getMessage();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse<>(500, "An internal server error occurred. Please contact the administrator.", null));
+                .body(new ApiResponse<>(500, message, null));
     }
 }

@@ -7,6 +7,11 @@
 
     let cachedCsrfToken = null;
 
+    // Direct frontend to Render backend when deployed on Vercel or external host
+    const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.endsWith('onrender.com'))
+        ? ''
+        : 'https://connected-ambulance-system.onrender.com';
+
     /**
      * Reads a cookie by name from document.cookie.
      * @param {string} name
@@ -42,9 +47,9 @@
 
         // Fallback: fetch from /api/auth/csrf endpoint
         try {
-            const res = await fetch('/api/auth/csrf', {
+            const res = await fetch(API_BASE_URL + '/api/auth/csrf', {
                 method: 'GET',
-                credentials: 'same-origin',
+                credentials: 'include',
                 headers: { 'Accept': 'application/json' }
             });
             if (res.ok) {
@@ -76,8 +81,9 @@
      * @returns {Promise<Object>} JSON response payload
      */
     async function apiFetch(url, options = {}) {
+        const targetUrl = (url.startsWith('http://') || url.startsWith('https://')) ? url : (API_BASE_URL + url);
         const fetchOptions = {
-            credentials: 'same-origin',
+            credentials: 'include',
             ...options,
             headers: {
                 'Accept': 'application/json',
@@ -102,7 +108,7 @@
 
         let response;
         try {
-            response = await fetch(url, fetchOptions);
+            response = await fetch(targetUrl, fetchOptions);
         } catch (networkError) {
             throw {
                 status: 0,
